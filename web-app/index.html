@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="manifest" href="manifest.json">
+    <style>
+    @import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+    body, html {
+        padding: 0;
+        margin: 0;
+    }
+
+    body {
+        font-family: 'Open Sans', sans-serif;
+        user-select: none;
+    }
+
+    header {
+        width: 100%;
+        height: 50px;
+        line-height: 50px;
+        color: white;
+        font-size: 20px;
+        text-align: center;
+        background-color: #6450ff;
+    }
+
+    #text {
+        margin: 20px 20px 0 20px;
+        padding: 20px;
+        background-color: #f6f6f6;
+    }
+
+    #image {
+        margin: 20px 20px 0 20px;
+        text-align: center;
+    }
+
+    #image img {
+        width: 100%;
+        height: auto;
+    }
+
+    #bottom {
+        position: fixed;
+        bottom: 0px;
+        left: 0;
+        right: 0;
+    }
+
+    #bottom-inner {
+        width: 100%;
+    }
+
+    #buttons {
+        margin: 0 20px 20px 20px;
+        padding: 20px;
+        background-color: #f6f6f6;
+    }
+
+    #buttons button {
+        width: 45%;
+        padding: 20px 0;
+    }
+
+    #buttons button.btn-active {
+        font-weight: bold;
+    }
+
+    #buttons #spacer {
+        display: inline-block;
+        width: 10%;
+    }
+
+    #slider {
+        margin: 0 20px 20px 20px;
+        background-color: #f6f6f6;
+        height: 50px;
+    }
+
+    #slider-fill {
+        background-color: #6450ff;
+        height: 50px;
+        width: 100%;
+    }
+    </style>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Tuinverlichting">
+    <meta name="apple-mobile-web-app-title" content="Tuinverlichting">
+    <meta name="theme-color" content="#6450ff">
+    <meta name="msapplication-navbutton-color" content="#6450ff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="msapplication-starturl" content="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="icon" type="image/png" sizes="72x72" href="https://tobiass.nl/tuin-app/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="72x72" href="https://tobiass.nl/tuin-app/icons/icon-72x72.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="https://tobiass.nl/tuin-app/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="96x96" href="https://tobiass.nl/tuin-app/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="https://tobiass.nl/tuin-app/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="128x128" href="https://tobiass.nl/tuin-app/icons/icon-128x128.png">
+    <link rel="icon" type="image/png" sizes="144x144" href="https://tobiass.nl/tuin-app/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="144x144" href="https://tobiass.nl/tuin-app/icons/icon-144x144.png">
+    <link rel="icon" type="image/png" sizes="152x152" href="https://tobiass.nl/tuin-app/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="152x152" href="https://tobiass.nl/tuin-app/icons/icon-152x152.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="https://tobiass.nl/tuin-app/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="192x192" href="https://tobiass.nl/tuin-app/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="384x384" href="https://tobiass.nl/tuin-app/icons/icon-384x384.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="384x384" href="https://tobiass.nl/tuin-app/icons/icon-384x384.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="https://tobiass.nl/tuin-app/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="512x512" href="https://tobiass.nl/tuin-app/icons/icon-512x512.png">
+
+    <title>Tuinverlichting</title>
+
+    <script>
+        window.addEventListener("load", () => {
+            const slider = document.querySelector("#slider");
+            const sliderFill = document.querySelector("#slider-fill");
+
+            const btnOn = document.querySelector("#btn-on");
+            const btnOff = document.querySelector("#btn-off");
+
+            let dimValue = 0;
+            let onOff = false;
+
+            function updateUI() {
+                sliderFill.style.width = (dimValue / 1023 * 100) + "%";
+
+                if (onOff) {
+                    btnOn.className = "btn-active";
+                    btnOff.className = "";
+                } else {
+                    btnOff.className = "btn-active";
+                    btnOn.className = "";
+                }
+            }
+
+            function pointerMoveHandler(e) {
+                const rect = slider.getBoundingClientRect();
+                let x = e.clientX - rect.x;
+                if (x < 0) {
+                    x = 0;
+                }
+                if (x > rect.width) {
+                    x = rect.width;
+                }
+
+                dimValue = Math.floor(x / rect.width * 1023);
+
+                updateUI();
+            }
+
+            fetch("/api/get").then((resp) => resp.json()).then((status) => {
+                dimValue = status.dim_value;
+                onOff = status.on_off;
+
+                updateUI();
+
+                let pointerDown = false;
+                slider.addEventListener("pointerdown", (e) => {
+                    pointerDown = true;
+                    pointerMoveHandler(e);
+                });
+                slider.addEventListener("pointermove", (e) => {
+                    if (pointerDown) {
+                        pointerMoveHandler(e);
+                    }
+                });
+                slider.addEventListener("pointercancel", () => {
+                    pointerDown = false;
+                });
+                slider.addEventListener("pointerup", () => {
+                    pointerDown = false;
+                    fetch("/api/set?dim_value=" + dimValue);
+                });
+
+                btnOn.addEventListener("click", () => {
+                    fetch("/api/set?on_off=true");
+                    onOff = true;
+                    updateUI();
+                });
+
+                btnOff.addEventListener("click", () => {
+                    fetch("/api/set?on_off=false");
+                    onOff = false;
+                    updateUI();
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <header>
+        Tuinverlichting
+    </header>
+    <div id="text">
+        Bedien hieronder de tuinverlichting. Met de schuif is de helderheid in te stellen, met de knoppen is het geheel in een keer aan of uit te zetten.
+    </div>
+    <div id="image">
+        <img src="https://tobiass.nl/tuin-app/huisje-scaled.jpg">
+    </div>
+    <div id="bottom">
+        <div id="bottom-inner">
+            <div id="buttons">
+                <button id="btn-off">Licht uit</button><div id="spacer"></div><button id="btn-on">Licht aan</button>
+            </div>
+            <div id="slider">
+                <div id="slider-fill"></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
